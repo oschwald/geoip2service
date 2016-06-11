@@ -25,49 +25,49 @@ type cachedDb struct {
 
 type City struct {
 	City struct {
-		GeoNameID uint              `maxminddb:"geoname_id"`
-		Names     map[string]string `maxminddb:"names"`
-	} `maxminddb:"city"`
+		GeoNameID uint              `json:"geoname_id" maxminddb:"geoname_id"`
+		Names     map[string]string `json:"names" maxminddb:"names"`
+	} `json:"city" maxminddb:"city"`
 	Continent struct {
-		Code      string            `maxminddb:"code"`
-		GeoNameID uint              `maxminddb:"geoname_id"`
-		Names     map[string]string `maxminddb:"names"`
-	} `maxminddb:"continent"`
+		Code      string            `json:"code" maxminddb:"code"`
+		GeoNameID uint              `json:"geoname_id" maxminddb:"geoname_id"`
+		Names     map[string]string `json:"names" maxminddb:"names"`
+	} `json:"continent" maxminddb:"continent"`
 	Country struct {
-		GeoNameID uint              `maxminddb:"geoname_id"`
-		IsoCode   string            `maxminddb:"iso_code"`
-		Names     map[string]string `maxminddb:"names"`
-	} `maxminddb:"country"`
+		GeoNameID uint              `json:"geoname_id" maxminddb:"geoname_id"`
+		IsoCode   string            `json:"iso_code" maxminddb:"iso_code"`
+		Names     map[string]string `json:"names" maxminddb:"names"`
+	} `json:"country" maxminddb:"country"`
 	Location struct {
-		AccuracyRadius uint16  `maxminddb:"accuracy_radius"`
-		Latitude       float64 `maxminddb:"latitude"`
-		Longitude      float64 `maxminddb:"longitude"`
-		MetroCode      uint    `maxminddb:"metro_code"`
-		TimeZone       string  `maxminddb:"time_zone"`
-	} `maxminddb:"location"`
+		AccuracyRadius uint16  `json:"accuracy_radius" maxminddb:"accuracy_radius"`
+		Latitude       float64 `json:"latitude" maxminddb:"latitude"`
+		Longitude      float64 `json:"longitude" maxminddb:"longitude"`
+		MetroCode      uint    `json:"metro_code" maxminddb:"metro_code"`
+		TimeZone       string  `json:"time_zone" maxminddb:"time_zone"`
+	} `json:"location" maxminddb:"location"`
 	Postal struct {
-		Code string `maxminddb:"code"`
-	} `maxminddb:"postal"`
+		Code string `json:"code" maxminddb:"code"`
+	} `json:"postal" maxminddb:"postal"`
 	RegisteredCountry struct {
-		GeoNameID uint              `maxminddb:"geoname_id"`
-		IsoCode   string            `maxminddb:"iso_code"`
-		Names     map[string]string `maxminddb:"names"`
-	} `maxminddb:"registered_country"`
+		GeoNameID uint              `json:"geoname_id" maxminddb:"geoname_id"`
+		IsoCode   string            `json:"iso_code" maxminddb:"iso_code"`
+		Names     map[string]string `json:"names" maxminddb:"names"`
+	} `json:"registered_country" maxminddb:"registered_country"`
 	RepresentedCountry struct {
-		GeoNameID uint              `maxminddb:"geoname_id"`
-		IsoCode   string            `maxminddb:"iso_code"`
-		Names     map[string]string `maxminddb:"names"`
-		Type      string            `maxminddb:"type"`
-	} `maxminddb:"represented_country"`
+		GeoNameID uint              `json:"geoname_id" maxminddb:"geoname_id"`
+		IsoCode   string            `json:"iso_code" maxminddb:"iso_code"`
+		Names     map[string]string `json:"names" maxminddb:"names"`
+		Type      string            `json:"type" maxminddb:"type"`
+	} `json:"represented_country" maxminddb:"represented_country"`
 	Subdivisions []struct {
-		GeoNameID uint              `maxminddb:"geoname_id"`
-		IsoCode   string            `maxminddb:"iso_code"`
-		Names     map[string]string `maxminddb:"names"`
-	} `maxminddb:"subdivisions"`
+		GeoNameID uint              `json:"geoname_id" maxminddb:"geoname_id"`
+		IsoCode   string            `json:"iso_code" maxminddb:"iso_code"`
+		Names     map[string]string `json:"names" maxminddb:"names"`
+	} `json:"subdivisions" maxminddb:"subdivisions"`
 	Traits struct {
-		IsAnonymousProxy    bool `maxminddb:"is_anonymous_proxy"`
-		IsSatelliteProvider bool `maxminddb:"is_satellite_provider"`
-	} `maxminddb:"traits"`
+		IsAnonymousProxy    bool `json:"is_anonymous_proxy" maxminddb:"is_anonymous_proxy"`
+		IsSatelliteProvider bool `json:"is_satellite_provider" maxminddb:"is_satellite_provider"`
+	} `json:"traits" maxminddb:"traits"`
 }
 
 func main() {
