@@ -1,12 +1,13 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
 	"net"
 
+	"github.com/mailru/easyjson"
+	"github.com/oschwald/geoip2service/model"
 	"github.com/oschwald/maxminddb-golang"
 	"github.com/qiangxue/fasthttp-routing"
 	"github.com/valyala/fasthttp"
@@ -20,54 +21,7 @@ var (
 
 type cachedDb struct {
 	reader *maxminddb.Reader
-	cache  map[uintptr]City
-}
-
-type City struct {
-	City struct {
-		GeoNameID uint              `json:"geoname_id" maxminddb:"geoname_id"`
-		Names     map[string]string `json:"names" maxminddb:"names"`
-	} `json:"city" maxminddb:"city"`
-	Continent struct {
-		Code      string            `json:"code" maxminddb:"code"`
-		GeoNameID uint              `json:"geoname_id" maxminddb:"geoname_id"`
-		Names     map[string]string `json:"names" maxminddb:"names"`
-	} `json:"continent" maxminddb:"continent"`
-	Country struct {
-		GeoNameID uint              `json:"geoname_id" maxminddb:"geoname_id"`
-		IsoCode   string            `json:"iso_code" maxminddb:"iso_code"`
-		Names     map[string]string `json:"names" maxminddb:"names"`
-	} `json:"country" maxminddb:"country"`
-	Location struct {
-		AccuracyRadius uint16  `json:"accuracy_radius" maxminddb:"accuracy_radius"`
-		Latitude       float64 `json:"latitude" maxminddb:"latitude"`
-		Longitude      float64 `json:"longitude" maxminddb:"longitude"`
-		MetroCode      uint    `json:"metro_code" maxminddb:"metro_code"`
-		TimeZone       string  `json:"time_zone" maxminddb:"time_zone"`
-	} `json:"location" maxminddb:"location"`
-	Postal struct {
-		Code string `json:"code" maxminddb:"code"`
-	} `json:"postal" maxminddb:"postal"`
-	RegisteredCountry struct {
-		GeoNameID uint              `json:"geoname_id" maxminddb:"geoname_id"`
-		IsoCode   string            `json:"iso_code" maxminddb:"iso_code"`
-		Names     map[string]string `json:"names" maxminddb:"names"`
-	} `json:"registered_country" maxminddb:"registered_country"`
-	RepresentedCountry struct {
-		GeoNameID uint              `json:"geoname_id" maxminddb:"geoname_id"`
-		IsoCode   string            `json:"iso_code" maxminddb:"iso_code"`
-		Names     map[string]string `json:"names" maxminddb:"names"`
-		Type      string            `json:"type" maxminddb:"type"`
-	} `json:"represented_country" maxminddb:"represented_country"`
-	Subdivisions []struct {
-		GeoNameID uint              `json:"geoname_id" maxminddb:"geoname_id"`
-		IsoCode   string            `json:"iso_code" maxminddb:"iso_code"`
-		Names     map[string]string `json:"names" maxminddb:"names"`
-	} `json:"subdivisions" maxminddb:"subdivisions"`
-	Traits struct {
-		IsAnonymousProxy    bool `json:"is_anonymous_proxy" maxminddb:"is_anonymous_proxy"`
-		IsSatelliteProvider bool `json:"is_satellite_provider" maxminddb:"is_satellite_provider"`
-	} `json:"traits" maxminddb:"traits"`
+	cache  map[uintptr]model.City
 }
 
 func main() {
@@ -98,10 +52,14 @@ func createCachedDb() (*cachedDb, error) {
 		return nil, err
 	}
 
-	cache := make(map[uintptr]City)
+	cache := make(map[uintptr]model.City)
 
 	// Add all data records to the cache so that we don't have to worry about
 	// concurrency issues.
+	// XXX - This would be much faster if we just iterated over the data
+	// section and not the search tree. The verifier code does this. It relies
+	// on implementation details of the MMDB::Writer code, but that is
+	// probably fine.
 	networks := db.Networks()
 	for networks.Next() {
 		_, offset, err := networks.NetworkOffset()
@@ -111,7 +69,7 @@ func createCachedDb() (*cachedDb, error) {
 		if _, ok := cache[offset]; ok {
 			continue
 		}
-		var record City
+		var record model.City
 		err = db.Decode(offset, &record)
 		if err != nil {
 			return nil, err
@@ -130,7 +88,13 @@ func createCachedDb() (*cachedDb, error) {
 }
 
 func cityRequestHandler(c *routing.Context, cdb *cachedDb) error {
-	ip := net.ParseIP(c.Param("ip"))
+	var ip net.IP
+	ipStr := c.Param("ip")
+	if ipStr == "me" {
+		ip = c.RemoteIP()
+	} else {
+		ip = net.ParseIP(ipStr)
+	}
 	if ip == nil {
 		c.Response.SetStatusCode(fasthttp.StatusBadRequest)
 		return nil
@@ -149,10 +113,10 @@ func cityRequestHandler(c *routing.Context, cdb *cachedDb) error {
 	if !ok {
 		return fmt.Errorf("offset without a record: %d", offset)
 	}
+
 	// not caching JSON as I plan to add things like IP address, etc., to
 	// match official web service
-	enc := json.NewEncoder(c.Response.BodyWriter())
-	enc.Encode(record)
+	easyjson.MarshalToWriter(record, c.Response.BodyWriter())
 
 	return nil
 }
